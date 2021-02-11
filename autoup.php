@@ -37,13 +37,32 @@
 
     $value = $query_dat->fetch();
 
-    //data image
-    $temp_folder = $value['dataset_id'];
-    $folder_name = 'upload/'.$temp_folder;
-    mkdir($folder_name,0777,true);
-    chmod($folder_name, 0777);
+    //automate dump
 
-    $countfiles = count($_FILES['files']['name']);
+      $dir =  'upload/'.$medic_record;
+
+      $GLOBALS['I'] = 0; // root folder given index 0
+
+      function dirToArray($dir) {
+          $result = array();
+          $cdir = scandir($dir);
+          foreach ($cdir as $key => $value) {
+              if (!in_array($value, array(".", "..")))  {
+                      $result[] = $value;
+                  }
+              }
+          }
+          
+          $result[] = $value;
+          return $result;
+      }
+
+      $res = dirToArray($dir);
+    // dumpsql
+    $temp_folder = $value['dataset_name'];
+    $folder_name = 'upload/'.$temp_folder;
+
+    $countfiles = count($res);
     $validate = NULL;
     $created_at = $created_date;
     $updated_at = $created_date;
@@ -54,19 +73,15 @@
     // Loop all files
     for($i=0;$i<$countfiles;$i++){
       // File name
-      $filename = $_FILES['files']['name'][$i];
+      $filename = $res[$i];
       // Get extension
       $ext = end((explode(".", $filename)));
       // Valid image extension
       $valid_ext = array("png","jpeg","jpg");
       if(in_array($ext, $valid_ext)){
-        // Upload file
-        if(move_uploaded_file($_FILES['files']['tmp_name'][$i],$folder_name.'/'.$filename)){
           // Execute query
-          $statement->execute(array($filename,$folder_name.'/'.$filename,$validate,$dataset_id,$created_at,$updated_at));
-        }
+          $statement->execute(array($filename,$folder_name.'/'.$filename,$validate,$dataset_id,$created_at,$updated_at)); 
       }
-    }
 
     // echo $datset_id_img;
 
